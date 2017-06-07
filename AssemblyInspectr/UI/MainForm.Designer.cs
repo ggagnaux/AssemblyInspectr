@@ -37,7 +37,7 @@
             this.tabPageClasses = new MetroFramework.Controls.MetroTabPage();
             this.panelClasses = new System.Windows.Forms.Panel();
             this.tabPageReferencedAssemblies = new MetroFramework.Controls.MetroTabPage();
-            this.panelReferencedAssembiles = new System.Windows.Forms.Panel();
+            this.panelReferencedAssemblies = new System.Windows.Forms.Panel();
             this.buttonAbout = new MetroFramework.Controls.MetroButton();
             this.tabControl.SuspendLayout();
             this.tabPageDetails.SuspendLayout();
@@ -115,7 +115,7 @@
             this.tabControl.Controls.Add(this.tabPageReferencedAssemblies);
             this.tabControl.Location = new System.Drawing.Point(23, 151);
             this.tabControl.Name = "tabControl";
-            this.tabControl.SelectedIndex = 0;
+            this.tabControl.SelectedIndex = 2;
             this.tabControl.Size = new System.Drawing.Size(1255, 699);
             this.tabControl.TabIndex = 4;
             this.tabControl.Theme = MetroFramework.MetroThemeStyle.Dark;
@@ -159,14 +159,14 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panelClasses.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.panelClasses.Location = new System.Drawing.Point(3, 8);
+            this.panelClasses.Location = new System.Drawing.Point(3, 7);
             this.panelClasses.Name = "panelClasses";
-            this.panelClasses.Size = new System.Drawing.Size(1239, 640);
+            this.panelClasses.Size = new System.Drawing.Size(1239, 641);
             this.panelClasses.TabIndex = 4;
             // 
             // tabPageReferencedAssemblies
             // 
-            this.tabPageReferencedAssemblies.Controls.Add(this.panelReferencedAssembiles);
+            this.tabPageReferencedAssemblies.Controls.Add(this.panelReferencedAssemblies);
             this.tabPageReferencedAssemblies.HorizontalScrollbarBarColor = true;
             this.tabPageReferencedAssemblies.HorizontalScrollbarHighlightOnWheel = false;
             this.tabPageReferencedAssemblies.HorizontalScrollbarSize = 10;
@@ -182,14 +182,14 @@
             // 
             // panelReferencedAssembiles
             // 
-            this.panelReferencedAssembiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.panelReferencedAssemblies.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelReferencedAssembiles.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.panelReferencedAssembiles.Location = new System.Drawing.Point(2, 8);
-            this.panelReferencedAssembiles.Name = "panelReferencedAssembiles";
-            this.panelReferencedAssembiles.Size = new System.Drawing.Size(1239, 640);
-            this.panelReferencedAssembiles.TabIndex = 4;
+            this.panelReferencedAssemblies.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
+            this.panelReferencedAssemblies.Location = new System.Drawing.Point(2, 8);
+            this.panelReferencedAssemblies.Name = "panelReferencedAssembiles";
+            this.panelReferencedAssemblies.Size = new System.Drawing.Size(1239, 640);
+            this.panelReferencedAssemblies.TabIndex = 4;
             // 
             // buttonAbout
             // 
@@ -238,7 +238,7 @@
         private MetroFramework.Controls.MetroTabPage tabPageClasses;
         private MetroFramework.Controls.MetroTabPage tabPageReferencedAssemblies;
         private System.Windows.Forms.Panel panelClasses;
-        private System.Windows.Forms.Panel panelReferencedAssembiles;
+        private System.Windows.Forms.Panel panelReferencedAssemblies;
         private MetroFramework.Controls.MetroButton buttonAbout;
     }
 }

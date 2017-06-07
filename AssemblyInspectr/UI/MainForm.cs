@@ -35,38 +35,27 @@ using KohdAndArt.Toolkit.Sys;
 using MetroFramework.Forms;
 using TheArtOfDev.HtmlRenderer.WinForms;
 using static AssemblyInspectr.Utility.UI.OpenFileDialogEx;
+using System.Web;
+using System.Linq;
 
 namespace AssemblyInspectr.UI
 {
     public partial class MainForm : MetroForm
     {
         #region Constants
-        private const string TestFile = @"D:\Temp\InternalSource\KohdAndArt.Toolkit\" + 
-                                        @"KohdAndArt.Toolkit\bin\Release\KohdAndArt.Toolkit.dll";
-        private const MetroFramework.MetroThemeStyle _theme = MetroFramework.MetroThemeStyle.Dark;
+        private const string TestFile = @"D:\Temp\InternalSource\AssemblyInspectr\" +
+                                        @"AssemblyInspectr\bin\Debug\MetroFramework.dll";
+        private const MetroFramework.MetroThemeStyle _theme = MetroFramework.MetroThemeStyle.Light;
         private const int PanelCount = 3;
-        private const string Panel1BackgroundColor = "#200";
+        private const string Panel1BackgroundColor = "#001f33";
         private const string Panel1ForegroundColor = "#ddd";
-        private const string Panel2BackgroundColor = "#020";
+        private const string Panel2BackgroundColor = "#001f33";
         private const string Panel2ForegroundColor = "#ddd";
-        private const string Panel3BackgroundColor = "#002";
+        private const string Panel3BackgroundColor = "#001f33";
         private const string Panel3ForegroundColor = "#ddd";
         #endregion
 
-        public enum TestEnum
-        {
-            First = 0,
-            Second,
-            Third
-        }
-
-        private enum PanelIdEnum
-        {
-            Details = 0,
-            Classes,
-            References
-        }
-
+        private enum PanelIdEnum { Details = 0, Classes, References }
         private HtmlPanel[] _htmlPanels = null;
         private static AssemblyUtilities assemblyUtilities = new AssemblyUtilities(Assembly.GetExecutingAssembly());
 
@@ -89,7 +78,7 @@ namespace AssemblyInspectr.UI
             this.tabControl.Theme = t;
         }
 
-        private void SetTitle(string t) => this.Text = $"{assemblyUtilities.AssemblyTitle} V{assemblyUtilities.AssemblyVersion}";
+        private void SetTitle(string t) => this.Text = t;
 
         private void CreateHtmlPanels()
         {
@@ -99,27 +88,20 @@ namespace AssemblyInspectr.UI
                 _htmlPanels[x] = new HtmlPanel();
             }
 
-            HtmlPanel p = null;
-            p = _htmlPanels[(int)PanelIdEnum.Details];
-            p.Dock = DockStyle.Fill;
-            p.BackColor = Color.Transparent;
-            panelAssemblyDetails.Controls.Add(p);
-            panelAssemblyDetails.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            panelAssemblyDetails.BackColor = Color.FromArgb(10, 10, 10);
+            CreatePanel(ref _htmlPanels[(int)PanelIdEnum.Details], ref panelAssemblyDetails);
+            CreatePanel(ref _htmlPanels[(int)PanelIdEnum.Classes], ref panelClasses);
+            CreatePanel(ref _htmlPanels[(int)PanelIdEnum.References], ref panelReferencedAssemblies);
+        }
 
-            p = _htmlPanels[(int)PanelIdEnum.Classes];
-            p.Dock = DockStyle.Fill;
-            p.BackColor = Color.Transparent;
-            panelClasses.Controls.Add(p);
-            panelClasses.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            panelClasses.BackColor = Color.FromArgb(10, 10, 10);
+        private void CreatePanel(ref HtmlPanel htmlPanel, ref Panel containerPanel)
+        {
+            htmlPanel.Dock = DockStyle.Fill;
+            htmlPanel.BackColor = Color.Transparent;
 
-            p = _htmlPanels[(int)PanelIdEnum.References];
-            p.Dock = DockStyle.Fill;
-            p.BackColor = Color.Transparent;
-            panelReferencedAssembiles.Controls.Add(p);
-            panelReferencedAssembiles.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            panelReferencedAssembiles.BackColor = Color.FromArgb(10, 10, 10);
+            // Add HtmlPanel to container
+            containerPanel.Controls.Add(htmlPanel);
+            containerPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            containerPanel.BackColor = Color.FromArgb(10, 10, 10);
         }
 
         private void textBoxAssemblyName_ButtonClick(object sender, EventArgs e)
@@ -148,7 +130,14 @@ namespace AssemblyInspectr.UI
             string[] results = new string[_htmlPanels.Length];
             try
             {
-                var au = new AssemblyUtilities(Assembly.LoadFile(textBoxAssemblyName.Text));
+                string filename = textBoxAssemblyName.Text;
+                if (filename.Length == 0)
+                {
+                    throw new FileNotFoundException();
+                }
+
+                Assembly a = Assembly.LoadFile(filename);
+                AssemblyUtilities au = new AssemblyUtilities(a);
                 results[(int)PanelIdEnum.Details] = GenerateAssemblyDetailsHtml(au);
                 results[(int)PanelIdEnum.Classes] = GenerateAssemblyClassesHtml(au);
                 results[(int)PanelIdEnum.References] = GenerateAssemblyReferencesHtml(au);
@@ -159,21 +148,24 @@ namespace AssemblyInspectr.UI
                             "Please select a different file.";
                 errorMessage = GenerateErrorHtml(msg);
             }
+            catch (FileNotFoundException ex)
+            {
+                string msg = @"Error:<br/><br/>File doesn't appear to exist.<br/>" +
+                            "Please select a different file.";
+                errorMessage = GenerateErrorHtml(msg);
+            }
 
             if (errorMessage.Length == 0)
             {
-                var index = PanelIdEnum.Details;
-                this._htmlPanels[(int)index].Text = results[(int)index];
-
-                index = PanelIdEnum.Classes;
-                this._htmlPanels[(int)index].Text = results[(int)index];
-
-                index = PanelIdEnum.References;
-                this._htmlPanels[(int)index].Text = results[(int)index];
+                this._htmlPanels[(int)PanelIdEnum.Details].Text = results[(int)PanelIdEnum.Details];
+                this._htmlPanels[(int)PanelIdEnum.Classes].Text = results[(int)PanelIdEnum.Classes];
+                this._htmlPanels[(int)PanelIdEnum.References].Text = results[(int)PanelIdEnum.References];
             }
             else
             {
                 this._htmlPanels[(int)PanelIdEnum.Details].Text = errorMessage;
+                this._htmlPanels[(int)PanelIdEnum.Classes].Text = errorMessage;
+                this._htmlPanels[(int)PanelIdEnum.References].Text = errorMessage;
             }
         }
 
@@ -227,8 +219,17 @@ namespace AssemblyInspectr.UI
             GenerateHtmlHeadBoilerplate(ref sb, Panel1BackgroundColor, Panel1ForegroundColor);
 
             // Body
-            GenerateHtmlBodyStartBoilerplate(ref sb, "Item Name", "Item Value");
+            sb.AppendLine(HtmlUtilities.HtmlBodyStart());
 
+            sb.AppendLine($"<h2>Assembly Details</h2>");
+            sb.AppendLine($"<div class='table-container'>");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<thead>");
+            sb.AppendLine("<tr>");
+            sb.AppendLine($"<th>Item</th><th>Value</th>");
+            sb.AppendLine("</tr>");
+            sb.AppendLine("</thead>");
+            sb.AppendLine("<tbody>");
             sb.AppendLine(HtmlUtilities.GenerateTableRow("CodeBase", au.RootAssembly.CodeBase));
             sb.AppendLine(HtmlUtilities.GenerateTableRow("FullName", au.RootAssembly.FullName));
             sb.AppendLine(HtmlUtilities.GenerateTableRow("GlobalAssemblyCache", au.RootAssembly.GlobalAssemblyCache.ToString()));
@@ -242,8 +243,9 @@ namespace AssemblyInspectr.UI
             sb.AppendLine(HtmlUtilities.GenerateTableRow("IsFullyTrusted", au.RootAssembly.IsFullyTrusted.ToString()));
             sb.AppendLine(HtmlUtilities.GenerateTableRow("ReflectionOnly", au.RootAssembly.ReflectionOnly.ToString()));
             sb.AppendLine(HtmlUtilities.GenerateTableRow("SecurityRuleSet", au.RootAssembly.SecurityRuleSet.ToString()));
-
-            GenerateHtmlBodyEndBoilerplate(ref sb);
+            sb.AppendLine("</div>");
+            sb.AppendLine("</body>");
+            sb.AppendLine("</html>");
 
             return sb.ToString();
         }
@@ -253,6 +255,9 @@ namespace AssemblyInspectr.UI
             if (null == au)
                 throw new ArgumentNullException();
 
+            int itemCount = 0;
+            string sectionTitle = string.Empty;
+
             var sb = new StringBuilder();
             sb.AppendLine(HtmlUtilities.HtmlStart());
 
@@ -260,38 +265,152 @@ namespace AssemblyInspectr.UI
             GenerateHtmlHeadBoilerplate(ref sb, Panel2BackgroundColor, Panel2ForegroundColor);
 
             // Body
-            GenerateHtmlBodyStartBoilerplate(ref sb, "Item Name", "Item Value");
+            sb.AppendLine(HtmlUtilities.HtmlBodyStart());
 
             try
             {
-                foreach (var classDetails in au.ClassDetailList)
+                foreach (var classDetail in au.ClassDetailList)
                 {
-                    sb.AppendLine(HtmlUtilities.GenerateTableRow("Class", classDetails.Name));
-                    foreach (var x in classDetails.MethodOrPropertyDetailsList)
+                    sb.AppendLine($"<h2>{classDetail.Name}</h2>");
+
+                    // 
+                    // Methods Table
+                    //
+                    itemCount = classDetail.MethodDetails.Count;
+                    sectionTitle = $"Methods [{itemCount}]";
+
+                    sb.AppendLine($"<div class='table-container'>");
+                    sb.AppendLine($"<h3>{sectionTitle}</h3>");
+                    sb.AppendLine("<table>");
+                    sb.AppendLine("<thead>");
+                    sb.AppendLine("<tr>");
+                    sb.AppendLine($"<th>Scope</th><th>Virtual</th><th>Return Value</th><th>Name</th><th>Parameters</th>");
+                    sb.AppendLine("</tr>");
+                    sb.AppendLine("</thead>");
+                    sb.AppendLine("<tbody>");
+
+
+                    // Sort by Scope (Public, Private, Protected), then by Name
+                    var sorted = classDetail.MethodDetails.OrderByDescending(p => p.IsPublic)
+                                                     .ThenByDescending(pr => pr.IsPrivate)
+                                                     .ThenBy(n => n.Name);
+
+                    foreach (var x in sorted)
                     {
-                        var methodOrProperty = x.IsProperty ? "Property" : "Method";
-                        var protectionLevel = x.ProtectionLevel;
+                        //var methodOrProperty = x.IsProperty ? "Property" : "Method";
+                        var protectionLevel = HttpUtility.HtmlEncode(x.ProtectionLevel);
                         var _static = x.IsStatic ? "static" : "";
-                        var returnType = x.ReturnType;
-                        var name = x.Name;
-                        var parameterList = x.GetParameterList();
-                        var methodDetails = $"{methodOrProperty}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{protectionLevel} {_static} {returnType} {name}({parameterList})";
+                        var returnType = HttpUtility.HtmlEncode(x.ReturnType);
+                        var name = HttpUtility.HtmlEncode(x.Name);
+                        var parameterList = HttpUtility.HtmlEncode(x.GetParameterList());
+                        string  _virtual = (x.IsVirtual == true) ? "virtual" : string.Empty;
 
-                        sb.AppendLine(HtmlUtilities.GenerateTableRowWithPadding(string.Empty, methodDetails));
+                        string protectionlevelClass = string.Empty;
+                        if (x.IsPublic)
+                        {
+                            protectionlevelClass = "class=\"public\"";
+                        }
+                        else if (x.IsPrivate)
+                        {
+                            protectionlevelClass = "class=\"private\"";
+                        } 
+                        else
+                        {
+                            protectionlevelClass = "class=\"protected\"";
+                        }
+                        sb.AppendLine($"<tr><td {protectionlevelClass}>{protectionLevel} {_static}</td><td>{_virtual}</td><td>{returnType}</td><td>{name}</td><td>{parameterList}</td></tr>");
                     }
+                    sb.AppendLine("</tbody>");
+                    sb.AppendLine("</table>");
+                    sb.AppendLine("</div>");
 
-                    sb.AppendLine(HtmlUtilities.GenerateTableRowWithPadding(string.Empty, string.Empty));
+                    // 
+                    // Properties Table
+                    //
+
+                    // Extract just the name property
+                    var data = classDetail.PropertyDetails.Select(i => i.Name).ToList();
+
+                    BuildSingleColumnDivAndTable(sb:ref sb, 
+                                                 tableTitle:"Properties", 
+                                                 columnTitle:"Name", 
+                                                 data:data);
+
+                    //
+                    // Fields Table
+                    //
+                    BuildSingleColumnDivAndTable(sb: ref sb,
+                                                 tableTitle: "Fields",
+                                                 columnTitle: "Name",
+                                                 data: classDetail.Fields);
+
+                    //
+                    // Nested Types Table
+                    //
+                    BuildSingleColumnDivAndTable(sb: ref sb,
+                                                 tableTitle: "Nested Types",
+                                                 columnTitle: "Name",
+                                                 data: classDetail.NestedTypes);
+
+                    //
+                    // Constructors Table
+                    //
+                    BuildSingleColumnDivAndTable(sb: ref sb,
+                                                 tableTitle: "Constructors",
+                                                 columnTitle: "Name",
+                                                 data: classDetail.Constructors);
+
+                    //
+                    // Events Table
+                    //
+                    BuildSingleColumnDivAndTable(sb: ref sb,
+                                                 tableTitle: "Events",
+                                                 columnTitle: "Name",
+                                                 data: classDetail.Events);
                 }
-
             }
             catch (ReflectionTypeLoadException ex)
             {
                 sb.AppendLine($"<tr><td colspan='2' style='color: #f00;'>{ex.Message}</tr>");
             }
 
-            GenerateHtmlBodyEndBoilerplate(ref sb);
+            sb.AppendLine("</body>");
+            sb.AppendLine("</html>");
 
             return sb.ToString();
+        }
+
+        private void BuildSingleColumnDivAndTable(ref StringBuilder sb, 
+                                                  string tableTitle, 
+                                                  string columnTitle, 
+                                                  IEnumerable<string> data)
+        {
+            int itemCount = data.Count();
+            string sectionTitle = $"{tableTitle} [{itemCount}]";
+
+            sb.AppendLine($"<div class='table-container'>");
+            sb.AppendLine($"<h3>{sectionTitle}</h3>");
+
+            if (itemCount > 0)
+            {
+                sb.AppendLine("<table>");
+                sb.AppendLine("<thead>");
+                sb.AppendLine("<tr>");
+                sb.AppendLine($"<th>{columnTitle}</th>");
+                sb.AppendLine("</tr>");
+                sb.AppendLine("</thead>");
+                sb.AppendLine("<tbody>");
+
+                foreach (var item in data)
+                {
+                    var name = HttpUtility.HtmlEncode(item);
+                    sb.AppendLine($"<tr><td>{name}</td></tr>");
+                }
+                sb.AppendLine("</tbody>");
+                sb.AppendLine("</table>");
+
+            }
+            sb.AppendLine("</div>");
         }
 
         private string GenerateAssemblyReferencesHtml(AssemblyUtilities au)
@@ -306,7 +425,17 @@ namespace AssemblyInspectr.UI
             GenerateHtmlHeadBoilerplate(ref sb, Panel3BackgroundColor, Panel3ForegroundColor);
 
             // Body
-            GenerateHtmlBodyStartBoilerplate(ref sb, "Assembly Name", "Version");
+            sb.AppendLine(HtmlUtilities.HtmlBodyStart());
+
+            sb.AppendLine($"<h2>Referenced Assemblies</h2>");
+            sb.AppendLine($"<div class='table-container'>");
+            sb.AppendLine("<table>");
+            sb.AppendLine("<thead>");
+            sb.AppendLine("<tr>");
+            sb.AppendLine($"<th>Assembly Name</th><th>Version</th>");
+            sb.AppendLine("</tr>");
+            sb.AppendLine("</thead>");
+            sb.AppendLine("<tbody>");
 
             try
             {
@@ -319,38 +448,89 @@ namespace AssemblyInspectr.UI
             {
                 sb.AppendLine($"<tr><td colspan='2' style='color: #f00;'>{ex.Message}</tr>");
             }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"<tr><td colspan='2' style='color: #f00;'>{ex.Message}</tr>");
+            }
 
-            GenerateHtmlBodyEndBoilerplate(ref sb);
+            sb.AppendLine("</div>");
+            sb.AppendLine("</body>");
+            sb.AppendLine("</html>");
 
             return sb.ToString();
         }
 
-        private void GenerateHtmlHeadBoilerplate(ref StringBuilder sb, string backgroundColor, string foregroundColor)
+        private void GenerateHtmlHeadBoilerplate(ref StringBuilder sb, 
+                                                 string backgroundColor, 
+                                                 string foregroundColor)
         {
             sb.AppendLine(HtmlUtilities.HtmlHeadStart());
-            sb.AppendLine("<style type='text/css'>");
-            sb.AppendLine("html, body {");
-            sb.AppendLine("font-family: arial;");
-            sb.AppendLine($"background-color: {backgroundColor};");
-            sb.AppendLine($"color: {foregroundColor};");
-            sb.AppendLine("}");
-            sb.AppendLine("table {");
-            sb.AppendLine("width: 100%;");
-            sb.AppendLine("border-collapse: collapse;");
-            sb.AppendLine("}");
-            sb.AppendLine("table thead td {");
-            sb.AppendLine("font-weight: bold;");
-            sb.AppendLine("height: 35px;");
-            sb.AppendLine("}");
-            sb.AppendLine("td {");
-            sb.AppendLine("padding-left: 5px;");
-            sb.AppendLine("border: 1px dotted #400;");
-            sb.AppendLine("}");
+            sb.AppendLine("<style type='text/css'>" + Environment.NewLine);
+
+            sb.Append("html, body {" +
+                    "font-family: arial;" +
+                    "font-weight: 200;" +
+                    "font-size: 14px;");
+            sb.Append($"background-color: {backgroundColor};" + Environment.NewLine);
+            sb.Append($"color: {foregroundColor}; " + Environment.NewLine);
+            sb.Append("}");
+            sb.AppendLine("h2 {" +
+                "    width: 100%;" + 
+                "    color:  #1ac6ff;" +
+                "    font-size: 1.5em;" +
+                "    margin-bottom: 30px;" +
+                "    padding-bottom: 10px;" +
+                "    border-bottom: 2px solid #1ac6ff;" +
+                "}" +
+                "h3 {" +
+                "   color: #e68a00;" +
+                "   font-size: 1.2em;" +
+                "}" +
+                ".table-container {" +
+                "    width: 100%;" +
+                "    margin-left: 40px;" +
+                "    margin-bottom: 40px;" +
+                "}" +
+                ".public {" +
+                "    color: #0f0;" +
+                "}" +
+                ".private {" +
+                "    color: #f00;" +
+                "}" +
+                ".protected {" +
+                "    color: #ff0;" +
+                "}" +
+                "table {" +
+                "    width: auto;"+
+                "    border-collapse: collapse;" +
+                "    border: 0px solid #999;" +
+                "    font-size: 14px;" +
+                "}" +
+
+                "table thead tr {" +
+                "    border-bottom: 1px dotted #fff;" +
+                "    background-color: #f00;" +
+                "}" +
+                "table thead tr th {" +
+                //"    border-left: 1px dotted #fff;" +
+                "    padding: 5px;" +
+                "    text-align: left; background-color: #400;" +
+                "}" +
+                "table tbody tr td {" +
+                "    border: 1px dotted #444;" +
+                "    padding: 5px;" +
+                "    color: #ccc;" +
+                "    min-width: 200px;" +
+                "}");
             sb.AppendLine("</style>");
+
+            string t = sb.ToString();
             sb.AppendLine(HtmlUtilities.HtmlHeadEnd());
         }
 
-        private void GenerateHtmlBodyStartBoilerplate(ref StringBuilder sb, string col1Label, string col2Label)
+        private void GenerateHtmlBodyStartBoilerplate(ref StringBuilder sb, 
+                                                      string col1Label, 
+                                                      string col2Label)
         {
             sb.AppendLine(HtmlUtilities.HtmlBodyStart());
             sb.AppendLine(HtmlUtilities.HtmlTableStart());
